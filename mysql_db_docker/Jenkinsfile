@@ -1,0 +1,58 @@
+pipeline {
+    agent any
+    parameters {
+        choice(name: 'ACTION', choices: ['start', 'stop', 'terminate'], description: 'Choose what to do with the MySQL container')
+    }
+    environment {
+        COMPOSE_FILE = 'mysql_db_docker/docker-compose.yml'
+    }
+    stages {
+        stage('Build MySQL Image') {
+            when { expression { params.ACTION == 'start' } }
+            steps {
+                echo "Building MySQL image from ./mysql_db_docker..."
+                sh 'sudo docker-compose -f ${COMPOSE_FILE} build mysql'
+            }
+        }
+        stage('Start MySQL Container') {
+            when { expression { params.ACTION == 'start' }}
+            steps {
+                echo "Starting MySQL container..."
+                sh 'sudo docker-compose -f ${COMPOSE_FILE} up -d mysql'
+            }
+        }
+        stage('Stop MySQL Container') {
+            when { expression { params.ACTION == 'stop' } }
+            steps {
+                echo "Stopping MySQL container..."
+                sh 'sudo docker-compose -f ${COMPOSE_FILE} stop mysql'
+            }
+        }
+        stage('Terminate MySQL Container') {
+            when { expression { params.ACTION == 'terminate' } }
+            steps {
+                echo "Removing MySQL container, network, and volume..."
+                sh 'sudo docker-compose -f ${COMPOSE_FILE} down -v'
+                sh 'sudo docker rmi -f mysql_db_docker_mysql || echo "MySQL image not found, skipping..."'
+                sh 'sudo docker rmi -f mysql:8.0 || echo "Base MySQL image not found, skipping..."'
+            }
+        }
+        stage('Show MySQL Status') {
+            steps {
+                echo "MySQL container status:"
+                sh 'sudo docker-compose -f ${COMPOSE_FILE} ps'
+            }
+        }
+    }
+    post {
+        success {
+            echo "Pipeline completed successfully for action: '${params.ACTION}'"
+        }
+        failure {
+            echo "Pipeline failed during action: '${params.ACTION}'"
+        }
+        always {
+            echo "Pipeline finished. Check logs above for details."
+        }
+    }
+}

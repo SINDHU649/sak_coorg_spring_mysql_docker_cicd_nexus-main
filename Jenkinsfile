@@ -5,7 +5,7 @@ pipeline {
     }
     parameters {
         string(name: 'DOCKER_IMAGE_NAME', defaultValue: 'coorg_sak_spring', description: 'Docker image name')
-        string(name: 'DOCKERHUB_USERNAME', defaultValue: 'sakit333', description: 'Docker Hub Username')
+        string(name: 'DOCKERHUB_USERNAME', defaultValue: 'sindhu2002', description: 'Docker Hub Username')
         string(name: 'DOCKER_TAG', defaultValue: "${env.BUILD_ID}", description: 'Docker image tag')
         choice(name: 'DEPLOY_ENV', choices: ['dev', 'prod'], description: 'Select the deployment environment')
         choice(name: 'ACTION', choices: ['deploy', 'remove'], description: 'Select the action')
